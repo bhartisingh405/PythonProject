@@ -8,9 +8,10 @@ config = configparser.ConfigParser()
 config.read('./configs/config.ini')
 pd.set_option("mode.chained_assignment", None)
 
-columns = ["transaction_id", "user_id", "user_account_id", "quantity", "asset_id", "custom_asset_id", "asset_type",
-           "trade_time", "trade_type", "trade_price", "trade_nav", "fees", "taxes", "created_time",
-           "external_transaction_id", "fee_currency", "remarks", "proposed_price", "last_updated_time",
+columns = ["transaction_id", "kristal_subscription_goal_id", "kristal_subscription_id", "user_id", "user_account_id",
+           "quantity", "asset_id", "custom_asset_id", "asset_type",
+           "trade_time", "trade_type", "trade_price", "trade_nav", "fee", "tax", "create_time",
+           "external_transaction_id", "fee_currency", "remarks", "proposed_price", "last_update_time",
            "wm_fx_rate_to_base", "base_currency", "trade_purpose", "original_trade_time", "original_trade_price",
            "original_trade_nav", "original_transaction_id", "accrued_interest", "biz_notes", "notes_updated_time",
            "foi_goal_id", "txn_key", "ttime", "tctime", "kristal_subscription_goal_id", "kristal_subscription_id",

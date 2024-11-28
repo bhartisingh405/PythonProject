@@ -1,3 +1,4 @@
+import datetime
 import psycopg2
 import pandas as pd
 from psycopg2.extras import RealDictCursor
@@ -52,46 +53,77 @@ def is_number(s):
     try:
         float(s)
         return True
-    except ValueError:
+    except (ValueError, Exception):
         return False
 
 
 def add_quotes(param):
     dateformat = '%Y-%m-%d %H:%M:%S'
-    if param is None or param is np.nan or param == '':
+    if param is None or param is np.nan or param == '' or param == 'None':
         return 'null'
-    elif is_number(param) or param.isdigit() or param.isnumeric() or param.isdecimal():
-        return ast.literal_eval(param)
+    elif is_num(param):
+        return param
     elif is_date(param):
         date_str = dateutil.parser.parse(param)
         return "\'" + date_str.strftime(dateformat) + "\'"
     elif is_dict(param):
-        return "\'" + json.dumps(ast.literal_eval(param)) + "\'"
-    elif isinstance(param, str):
+        return "\'" + json.dumps(param) + "\'"
+    elif is_string(param):
         return "\'" + param + "\'"
+    elif is_datetime(param):
+        return "'" + param.strftime(dateformat) + "'"
     else:
         return param
+
+
+def is_num(value):
+    try:
+        # Only attempt to convert to float if the value is not datetime or dict
+        if float(value) or value.isdigit() or value.isnumeric() or value.isdecimal():
+            return True
+        return False
+    except (Exception, ValueError, TypeError):
+        return False
+
+
+def is_datetime(value):
+    try:
+        if isinstance(value, datetime.datetime):
+            return True
+        return False
+    except (Exception, ValueError, TypeError):
+        return False
+
+
+def is_string(value):
+    try:
+        if isinstance(value, str):
+            return True
+        return False
+    except (Exception, ValueError, TypeError):
+        return False
 
 
 def is_date(string, fuzzy=False):
     try:
         parse(string, fuzzy=fuzzy)
         return True
-    except ValueError:
+    except (ValueError, Exception):
         return False
 
 
 def is_dict(string):
     try:
-        result = ast.literal_eval(string)
-        return isinstance(result, dict)
-    except (SyntaxError, ValueError):
+        if isinstance(string, dict):
+            return True
+        return False
+    except (SyntaxError, ValueError, Exception):
         return False
 
 
 def is_json(myjson):
     try:
         json.loads(myjson)
-    except ValueError as e:
+    except (ValueError, Exception) as e:
         return False
     return True
