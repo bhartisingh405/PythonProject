@@ -9,8 +9,7 @@ config.read('../configs/config.ini')
 pd.set_option("mode.chained_assignment", None)
 
 columns = ["goal_id", "transaction_id", "user_id", "user_account_id", "quantity", "asset_id", "custom_asset_id",
-           "asset_type",
-           "trade_time", "trade_type", "trade_price", "trade_nav", "fees", "taxes", "created_time",
+           "asset_type","trade_time", "trade_type", "trade_price", "trade_nav", "fees", "taxes", "created_time",
            "external_transaction_id", "fee_currency", "remarks", "proposed_price", "last_updated_time",
            "wm_fx_rate_to_base", "base_currency", "trade_purpose", "original_trade_time", "original_trade_price",
            "original_trade_nav", "original_transaction_id", "accrued_interest", "biz_notes", "notes_updated_time",
@@ -47,6 +46,13 @@ try:
     txn_view = sqlCommands[1]
     orphan_txn_view = sqlCommands[2]
     insert_query_full = sqlCommands[3]
+
+    no_of_goals = sqlCommands[4]
+    dfg = postgresql_to_dataframe(connection, no_of_goals, columns=['goal_id'])
+    dfg.head()
+    print("Total goals : ", dfg.count())
+    dfg.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True, columns=["goal_id"])
+
     row_count = postgresql_to_row_count(connection, txn_count)
 
     df = postgresql_to_dataframe(connection, txn_view, columns)

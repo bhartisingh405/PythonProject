@@ -12,7 +12,6 @@ sqlCommands = sqlFile.split(';')
 insert_query_full = sqlCommands[3]
 
 columns_to_read = ['transaction_id', 'goal_id']
-df = pd.read_csv('../files/itd/all_txns.csv', usecols=columns_to_read)
 
 # Process chunks of data to avoid memory overload
 chunk_size = 10000  # Adjust chunk size based on memory
@@ -29,17 +28,30 @@ errors = open("../files/out/errors.txt", "w", encoding="utf-8")
 
 def process(chunks):
     global ksg
+    global txn
     for row in chunks.itertuples(index=False):
 
         if row is None:
             continue
 
-        txn = postgresql_to_record(connection,
-                                   "select * from funds_investo2o.transactions where transaction_id={}".format(
-                                       row.transaction_id))
+        if math.isnan(row.transaction_id) or row.transaction_id is None:
+            txn = [{}]
+            txn[0] = dict(transaction_id=None, user_id=None, user_account_id=None, quantity=0, asset_id=None,
+                          custom_asset_id=None, asset_type='FUND', trade_time=None, trade_type='NA', trade_price=None,
+                          trade_nav=None, fee=None, tax=None, external_transaction_id=None, fee_currency=None,
+                          remarks=None, proposed_price=None, wm_fx_rate_to_base=None, base_currency=None,
+                          trade_purpose='DEFAULT', original_trade_time=None, original_trade_price=None,
+                          original_trade_nav=None, original_transaction_id=None, accrued_interest=None, biz_notes=None,
+                          notes_updated_time=None)
+        else:
+            txn = postgresql_to_record(connection,
+                                       "select * from funds_investo2o.transactions where transaction_id={}".format(
+                                           row.transaction_id))
+
         if math.isnan(row.goal_id) or row.goal_id is None:
             ksg = [{}]
-            ksg[0] = dict(kristal_subscription_id=None, kristal_subscription_goal_id=None, subscription_date=None,
+            ksg[0] = dict(kristal_execution_account=None, user_id=None, kristal_subscription_id=None,
+                          kristal_subscription_goal_id=None, subscription_date=None,approved_units=None,
                           subscribed_by=None, approved_date=None, approved_by=None, source_type=None,
                           audit_details=None, unit_price=None, cash_in_kristal_per_unit=None, total_cost=None,
                           asset_wise_cost_map=None, subscription_pending_execution_state='NA',
@@ -67,9 +79,10 @@ def process(chunks):
                 insert_psql.write(insert_query_full.format(add_quotes(txn[0]['transaction_id']),
                                                            add_quotes(ksg[0]['kristal_subscription_goal_id']),
                                                            add_quotes(ksg[0]['kristal_subscription_id']),
-                                                           add_quotes(txn[0]['user_id']),
-                                                           add_quotes(txn[0]['user_account_id']),
-                                                           add_quotes(txn[0]['quantity']),
+                                                           add_quotes(txn[0]['user_id'] or ksg[0]['user_id']),
+                                                           add_quotes(txn[0]['user_account_id']
+                                                                      or ksg[0]['kristal_execution_account']),
+                                                           add_quotes(txn[0]['quantity'] or ksg[0]['approved_units']),
                                                            add_quotes((ksg[0]['approved_amount'])),
                                                            add_quotes(txn[0]['asset_id']),
                                                            add_quotes(txn[0]['custom_asset_id']),
@@ -162,10 +175,7 @@ def process(chunks):
                 errors.write(f"TransactionId - {txn[0]['transaction_id']} An unexpected error occurred: {e}" + "\n")
 
 
-for chunk in pd.read_csv('../files/itd/all_txns.csv', chunksize=chunk_size):
+for chunk in pd.read_csv('../files/itd/all_trades.csv', chunksize=chunk_size):
     process(chunk)
 insert_psql.close()
 errors.close()
-
-
-
