@@ -8,27 +8,7 @@ config = configparser.ConfigParser()
 config.read('../configs/config.ini')
 pd.set_option("mode.chained_assignment", None)
 
-columns = ["goal_id", "transaction_id", "user_id", "user_account_id", "quantity", "asset_id", "custom_asset_id",
-           "asset_type","trade_time", "trade_type", "trade_price", "trade_nav", "fees", "taxes", "created_time",
-           "external_transaction_id", "fee_currency", "remarks", "proposed_price", "last_updated_time",
-           "wm_fx_rate_to_base", "base_currency", "trade_purpose", "original_trade_time", "original_trade_price",
-           "original_trade_nav", "original_transaction_id", "accrued_interest", "biz_notes", "notes_updated_time",
-           "foi_goal_id", "txn_key", "ttime", "tctime", "kristal_subscription_goal_id", "kristal_subscription_id",
-           "user_id", "approved_units", "approved_amount", "create_time", "kristal_execution_account",
-           "subscription_date", "subscribed_by", "approved_date", "approved_by", "goal_id", "source_type",
-           "audit_details", "unit_price", "cash_in_kristal_per_unit", "total_cost", "asset_wise_cost_map",
-           "subscription_pending_execution_state", "unique_id", "last_update_time", "requested_units",
-           "requested_amount", "original_request", "lifecycle_state", "bookkeeping_state", "bk_state_mover",
-           "fund_remarks", "user_report_id", "fund_bookkeeping", "flux_units", "kristal_id", "investment_rationale",
-           "temp_unit_price", "temp_total_cost", "approval_audit", "platform", "mechanism", "activity_uuid",
-           "is_transfer", "transaction_fees", "fee", "tax", "original_subscription_date", "original_unit_nav",
-           "original_investment_amount", "original_goal_id", "expert_opinion_id", "broker_price", "client_price",
-           "execution_date", "settlement_date", "sn_note_size", "spread", "spread_amount", "broker_settlement_amount",
-           "sn_net_subscription_amount", "cost_with_fees", "cost_without_fees", "order_fees", "limit_price",
-           "order_currency", "dvp_route", "shared_spread_amount", "shared_spread_percentage", "kristal_spread_amount",
-           "kristal_spread_percentage", "kristal_access_fees", "nav_date", "payment_date", "internal_cutoff",
-           "estimated_dates_audit", "estimated_subscription_dates_id", "estimated_redemption_dates_id",
-           "goal_key", "stime", "atime"]
+columns = ["goal_id", "transaction_id", "trade_type", "foi_goal_id", "kristal_subscription_goal_id"]
 
 try:
     connection = psycopg2.connect(host=config['postgresDB']['host'],
@@ -42,24 +22,25 @@ try:
     sqlFile = fd.read()
     fd.close()
     sqlCommands = sqlFile.split(';')
-    txn_count = sqlCommands[0]
-    txn_view = sqlCommands[1]
-    orphan_txn_view = sqlCommands[2]
-    insert_query_full = sqlCommands[3]
+    row_count = postgresql_to_row_count(connection, sqlCommands[0])
 
-    no_of_goals = sqlCommands[4]
-    dfg = postgresql_to_dataframe(connection, no_of_goals, columns=['goal_id'])
+    dfak = postgresql_to_dataframe(connection, sqlCommands[5],
+                                   columns=['kristal_subscription_id', 'skey', 'fund_id', 'fkey'])
+    dfak.head()
+    print("Total FundAsset Subs : ", len(dfak))
+    dfak.to_csv('../files/itd/fund_ksub.csv', encoding='utf-8', index=False, header=True,
+                columns=['kristal_subscription_id', 'skey', 'fund_id', 'fkey'])
+
+    dfg = postgresql_to_dataframe(connection, sqlCommands[4], columns=['goal_id'])
     dfg.head()
-    print("Total goals : ", dfg.count())
+    print("Total goals : ", len(dfg))
     dfg.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True, columns=["goal_id"])
 
-    row_count = postgresql_to_row_count(connection, txn_count)
-
-    df = postgresql_to_dataframe(connection, txn_view, columns)
+    df = postgresql_to_dataframe(connection, sqlCommands[1], columns)
     df.head()
     dup_df = df[df.duplicated('transaction_id', keep=False)]
 
-    unmapped_df = postgresql_to_dataframe(connection, orphan_txn_view,
+    unmapped_df = postgresql_to_dataframe(connection, sqlCommands[2],
                                           ["trade_type", "transaction_id", "foi_goal_id", "derived_goal_id",
                                            "txn_key", "goal_key"])
     unmapped_df.head()

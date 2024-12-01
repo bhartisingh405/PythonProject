@@ -11,8 +11,6 @@ fd.close()
 sqlCommands = sqlFile.split(';')
 insert_query_full = sqlCommands[3]
 
-columns_to_read = ['transaction_id', 'goal_id']
-
 # Process chunks of data to avoid memory overload
 chunk_size = 10000  # Adjust chunk size based on memory
 
@@ -22,8 +20,8 @@ connection = psycopg2.connect(host=config['postgresDB']['host'],
                               port=config['postgresDB']['port'],
                               database=config['postgresDB']['db'])
 
-insert_psql = open("../files/out/insert_scripts.sql", "w", encoding="utf-8")
-errors = open("../files/out/errors.txt", "w", encoding="utf-8")
+insert_psql = open("../files/out/trades_tally_inserts.sql", "w", encoding="utf-8")
+errors = open("../files/out/trades_tally_errors.txt", "w", encoding="utf-8")
 
 
 def process(chunks):

@@ -65,7 +65,11 @@ cte2 AS (
     INNER JOIN kristaldata_kristals.kristal_properties as kp ON kp.kristal_id = g.kristal_id
 )
 SELECT
-  (coalesce(txn.foi_goal_id,goal.kristal_subscription_goal_id))::text as goal_id, txn.* ,  goal.*
+  (coalesce(txn.foi_goal_id,goal.kristal_subscription_goal_id))::text as goal_id,
+  txn.transaction_id as transaction_id,
+  txn.trade_type as trade_type,
+  goal.kristal_subscription_goal_id as kristal_subscription_goal_id,
+  txn.foi_goal_id AS foi_goal_id
 FROM
   cte1 AS txn
   LEFT OUTER JOIN cte2 as goal ON (
@@ -175,7 +179,38 @@ FROM
   where trade_type in ('BUY','SELL','ASSET_IN','ASSET_OUT') and txn.foi_goal_id  is null and goal.kristal_subscription_goal_id is null ;
   insert into orders.trades_tally (transaction_id,kristal_subscription_goal_id,kristal_subscription_id,user_id,user_account_id,quantity,approved_amount,asset_id, custom_asset_id,asset_type,trade_time,trade_type,trade_price,trade_nav,fee,tax,create_time,last_update_time,external_transaction_id,fee_currency,remarks,proposed_price,wm_fx_rate_to_base,base_currency,trade_purpose,original_trade_time,original_trade_price,original_trade_nav,original_transaction_id,accrued_interest,biz_notes,notes_updated_time,subscription_date,subscribed_by,approved_date,approved_by,source_type,audit_details,unit_price,cash_in_kristal_per_unit,total_cost,asset_wise_cost_map,execution_state,lifecycle_state,bookkeeping_state,unique_id,requested_units,requested_amount,original_request,bk_state_mover,fund_remarks,user_report_id,fund_bookkeeping,kristal_id,investment_rationale,temp_unit_price,temp_total_cost,approval_audit,platform,mechanism,activity_uuid,is_transfer,transaction_fees,original_subscription_date,original_unit_nav,original_investment_amount,expert_opinion_id,broker_price,client_price,execution_date,settlement_date,sn_note_size,spread,spread_amount,broker_settlement_amount,sn_net_subscription_amount,cost_with_fees,cost_without_fees,order_fees,limit_price,order_currency,dvp_route,shared_spread_amount,shared_spread_percentage,kristal_spread_amount,kristal_spread_percentage,kristal_access_fees,nav_date,payment_date,internal_cutoff,estimated_dates_audit,estimated_subscription_dates_id,estimated_redemption_dates_id) values ({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ;
   select kristal_subscription_goal_id as goal_id from funds_kristals.kristal_subscription_goal ;
+WITH
+  cte0 AS (
 
+    SELECT ks.kristal_subscription_id as kristal_subscription_id,
+    concat_ws (
+        '|',
+        trim_scale(ROUND(ks.no_of_subscribed_approved_units::numeric, 10)),
+        ks.kristal_execution_account,
+        kp.lone_asset_id
+      ) as skey
+    from funds_kristals.kristal_subscription as ks
+        INNER JOIN kristaldata_kristals.kristal_properties as kp ON kp.kristal_id = ks.kristal_id
+    where exists (select ksg.kristal_subscription_goal_id from funds_kristals.kristal_subscription_goal as ksg where ksg.kristal_subscription_id = ks.kristal_subscription_id limit 1 )
+
+  ),
+  cte1 AS (
+
+    SELECT
+      id as fund_id ,
+      concat_ws (
+        '|',
+        trim_scale(ROUND(quantity::numeric, 10)),
+        user_account_id,
+        asset_id
+      ) as fkey
+    FROM funds_investo2o.fund
+  ) SELECT ksub.kristal_subscription_id as kristal_subscription_id ,
+    ksub.skey as skey ,
+    fd.fund_id as fund_id ,
+    fd.fkey as fkey
+   FROM cte0 as ksub FULL JOIN cte1 as fd ON fd.fkey = ksub.skey ;
+  insert into orders.fund_tally (fund_id,user_account_id,quantity,cost_nav,net_asset_value,dividends,eq_credit,eq_debit, transaction_fees,gain_or_loss,nav_calculation_time,now(),now(),user_id,asset_id,custom_asset_id,return_percentage,fx_to_account,ib_leverage_in_account_currency,accrued_interest,kristal_subscription_id,kristal_id,no_of_subscribed_pending_units,amount_of_mf_order_pending,unit_cost_price,last_subscription_date,last_subscribed_by) values ({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ;
 
 
 
