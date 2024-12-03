@@ -32,15 +32,21 @@ def process(chunks):
         if row is None:
             continue
 
+        if row.skey is not None and str(row.skey).split("|")[0] == 0:
+            continue
+
+        if row.fkey is not None and str(row.fkey).split("|")[0] == 0:
+            continue
+
         if math.isnan(row.fund_id) or row.fund_id is None:
             fund = [{}]
-            fund[0] = dict(fund_id=None, user_id=None, quantity=0, user_account_id=None, cost_nav=0, asset_id=None,
+            fund[0] = dict(id=None, user_id=None, quantity=0, user_account_id=None, cost_nav=0, asset_id=None,
                            custom_asset_id=None, net_asset_value=None, dividends=0, eq_credit=0, eq_debit=0,
                            transaction_fees=0, gain_or_loss=0, nav_calculation_time=None,
                            return_percentage=0, fx_to_account=0, ib_leverage_in_account_currency=0, accrued_interest=0)
         else:
             fund = postgresql_to_record(connection,
-                                        "select * from funds_investo2o.fund where fund_id={}".format(
+                                        "select * from funds_investo2o.fund where id={}".format(
                                             row.fund_id))
 
         if math.isnan(row.kristal_subscription_id) or row.kristal_subscription_id is None:
@@ -56,7 +62,7 @@ def process(chunks):
 
         if ksub is not None and fund is not None:
             try:
-                insert_psql.write(insert_query_full.format(add_quotes(fund[0]['fund_id']),
+                insert_psql.write(insert_query_full.format(add_quotes(fund[0]['id']),
                                                            add_quotes(fund[0]['user_account_id']
                                                                       or ksub[0]['kristal_execution_account']),
                                                            add_quotes(fund[0]['quantity']

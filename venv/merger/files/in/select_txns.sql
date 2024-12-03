@@ -210,7 +210,7 @@ WITH
     fd.fund_id as fund_id ,
     fd.fkey as fkey
    FROM cte0 as ksub FULL JOIN cte1 as fd ON fd.fkey = ksub.skey ;
-  insert into orders.fund_tally (fund_id,user_account_id,quantity,cost_nav,net_asset_value,dividends,eq_credit,eq_debit, transaction_fees,gain_or_loss,nav_calculation_time,now(),now(),user_id,asset_id,custom_asset_id,return_percentage,fx_to_account,ib_leverage_in_account_currency,accrued_interest,kristal_subscription_id,kristal_id,no_of_subscribed_pending_units,amount_of_mf_order_pending,unit_cost_price,last_subscription_date,last_subscribed_by) values ({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ;
+  insert into orders.fund_tally (fund_id,user_account_id,quantity,cost_nav,net_asset_value,dividends,eq_credit,eq_debit, transaction_fees,gain_or_loss,nav_calculation_time,created_time,updated_time,user_id,asset_id,custom_asset_id,return_percentage,fx_to_account,ib_leverage_in_account_currency,accrued_interest,kristal_subscription_id,kristal_id,no_of_subscribed_pending_units,amount_of_mf_order_pending,unit_cost_price,last_subscription_date,last_subscribed_by) values ({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}) ;
 
 
 

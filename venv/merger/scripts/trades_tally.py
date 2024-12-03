@@ -27,6 +27,7 @@ errors = open("../files/out/trades_tally_errors.txt", "w", encoding="utf-8")
 def process(chunks):
     global ksg
     global txn
+    global ka
     for row in chunks.itertuples(index=False):
 
         if row is None:
@@ -49,7 +50,7 @@ def process(chunks):
         if math.isnan(row.goal_id) or row.goal_id is None:
             ksg = [{}]
             ksg[0] = dict(kristal_execution_account=None, user_id=None, kristal_subscription_id=None,
-                          kristal_subscription_goal_id=None, subscription_date=None,approved_units=None,
+                          kristal_subscription_goal_id=None, subscription_date=None, approved_units=None,
                           subscribed_by=None, approved_date=None, approved_by=None, source_type=None,
                           audit_details=None, unit_price=None, cash_in_kristal_per_unit=None, total_cost=None,
                           asset_wise_cost_map=None, subscription_pending_execution_state='NA',
@@ -72,6 +73,14 @@ def process(chunks):
             ksg = postgresql_to_record(connection, f"select * from funds_kristals.kristal_subscription_goal where "
                                                    "kristal_subscription_goal_id={}".format(row.goal_id))
 
+        if txn[0]['asset_id'] is None and ksg[0]['kristal_id'] is not None:
+            ka = postgresql_to_record(connection, f"select * from kristaldata_kristals.kristal_properties where "
+                                                  "kristal_id={}".format(ksg[0]['kristal_id']))
+
+        elif ksg[0]['kristal_id'] is None and txn[0]['asset_id'] is not None:
+            ka = postgresql_to_record(connection, f"select * from kristaldata_kristals.kristal_properties where "
+                                                  "lone_asset_id={}".format(txn[0]['asset_id']))
+
         if ksg is not None and txn is not None:
             try:
                 insert_psql.write(insert_query_full.format(add_quotes(txn[0]['transaction_id']),
@@ -82,7 +91,7 @@ def process(chunks):
                                                                       or ksg[0]['kristal_execution_account']),
                                                            add_quotes(txn[0]['quantity'] or ksg[0]['approved_units']),
                                                            add_quotes((ksg[0]['approved_amount'])),
-                                                           add_quotes(txn[0]['asset_id']),
+                                                           add_quotes((txn[0]['asset_id'] or ka[0]['lone_asset_id'])),
                                                            add_quotes(txn[0]['custom_asset_id']),
                                                            add_quotes(txn[0]['asset_type']),
                                                            add_quotes(txn[0]['trade_time']),
@@ -128,7 +137,7 @@ def process(chunks):
                                                            add_quotes(ksg[0]['fund_remarks']),
                                                            add_quotes(ksg[0]['user_report_id']),
                                                            add_quotes(ksg[0]['fund_bookkeeping']),
-                                                           add_quotes(ksg[0]['kristal_id']),
+                                                           add_quotes(ksg[0]['kristal_id'] or ka[0]['kristal_id']),
                                                            add_quotes(ksg[0]['investment_rationale']),
                                                            add_quotes(ksg[0]['temp_unit_price']),
                                                            add_quotes(ksg[0]['temp_total_cost']),
