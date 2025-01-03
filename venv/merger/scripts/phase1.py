@@ -22,30 +22,26 @@ try:
     sqlFile = fd.read()
     fd.close()
     sqlCommands = sqlFile.split(';')
-    row_count = postgresql_to_row_count(connection, sqlCommands[0])
+    total_txn_count = postgresql_to_row_count(connection, sqlCommands[0])
 
     dfak = postgresql_to_dataframe(connection, sqlCommands[5],
                                    columns=['kristal_subscription_id', 'skey', 'fund_id', 'fkey'])
-    dfak.head()
     print("Total FundAsset Subs : ", len(dfak))
     dfak.to_csv('../files/itd/fund_ksub.csv', encoding='utf-8', index=False, header=True,
                 columns=['kristal_subscription_id', 'skey', 'fund_id', 'fkey'])
 
     dfg = postgresql_to_dataframe(connection, sqlCommands[4], columns=['goal_id'])
-    dfg.head()
     print("Total goals : ", len(dfg))
     dfg.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True, columns=["goal_id"])
 
     df = postgresql_to_dataframe(connection, sqlCommands[1], columns)
-    df.head()
     dup_df = df[df.duplicated('transaction_id', keep=False)]
 
     unmapped_df = postgresql_to_dataframe(connection, sqlCommands[2],
                                           ["trade_type", "transaction_id", "foi_goal_id", "derived_goal_id",
                                            "txn_key", "goal_key"])
-    unmapped_df.head()
 
-    print("Original Transactions : ", row_count)
+    print("Original Transactions : ", total_txn_count)
     print("Transactions View: ", len(df))
     print("Duplicate Transactions : ", len(dup_df))
     print("Unmapped Transactions : ", len(unmapped_df))

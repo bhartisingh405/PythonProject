@@ -46,6 +46,7 @@ def postgresql_to_dataframe(conn, select_query, columns):
     tuples = cursorInner.fetchall()
     cursorInner.close()
     df_inner = pd.DataFrame(tuples, columns=columns)
+    df_inner.head()
     return df_inner
 
 

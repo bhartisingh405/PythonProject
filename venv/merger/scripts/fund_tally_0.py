@@ -5,11 +5,11 @@ import math
 
 config = configparser.ConfigParser()
 config.read('../configs/config.ini')
-fd = open('../files/in/select_txns.sql', 'r')
+fd = open('../files/in/fund_tally_queries.sql', 'r')
 sqlFile = fd.read()
 fd.close()
 sqlCommands = sqlFile.split(';')
-insert_query_full = sqlCommands[6]
+insert_query_full = sqlCommands[3]
 
 # Process chunks of data to avoid memory overload
 chunk_size = 10000  # Adjust chunk size based on memory
@@ -22,20 +22,34 @@ connection = psycopg2.connect(host=config['postgresDB']['host'],
 
 insert_psql = open("../files/out/fund_tally_inserts.sql", "w", encoding="utf-8")
 errors = open("../files/out/fund_tally_errors.txt", "w", encoding="utf-8")
+skipped = open("../files/out/fund_tally_skipped.txt", "w", encoding="utf-8")
+
+total_ksub_count = postgresql_to_row_count(connection, sqlCommands[0])
+total_asset_count = postgresql_to_row_count(connection, sqlCommands[1])
+
+columns = ['kristal_subscription_id', 'skey', 'fund_id', 'fkey', 'email', 'compliance_mode',
+           'is_model_account', 'account_status']
+data_frame = postgresql_to_dataframe(connection, sqlCommands[2], columns)
+data_frame.to_csv('../files/itd/fund_ksub.csv', encoding='utf-8', index=False, header=True, columns=columns)
+
+rows_where_fund_is_null = len(data_frame.loc[data_frame['fkey'].isnull()])
+rows_where_ksub_is_null = len(data_frame.loc[data_frame['skey'].isnull()])
+rows_where_ksub_fund_non_null = len(data_frame.loc[(data_frame['skey'].notnull()) & (data_frame['fkey'].notnull())])
 
 
 def process(chunks):
-    global fund
-    global ksub
+    global fund, ksub
     for row in chunks.itertuples(index=False):
 
         if row is None:
             continue
 
         if row.skey is not None and str(row.skey).split("|")[0] == 0:
+            skipped.write(f"Row - {row}" + "\n")
             continue
 
         if row.fkey is not None and str(row.fkey).split("|")[0] == 0:
+            skipped.write(f"Row - {row}" + "\n")
             continue
 
         if math.isnan(row.fund_id) or row.fund_id is None:
@@ -86,10 +100,10 @@ def process(chunks):
                                                            add_quotes(ksub[0]['kristal_id']),
                                                            add_quotes(ksub[0]['no_of_subscribed_pending_units']),
                                                            add_quotes(ksub[0]['amount_of_mf_order_pending']),
-                                                           add_quotes(ksub[0]['unit_cost_price']),
+                                                           add_quotes((ksub[0]['unit_cost_price'] or 0)),
                                                            add_quotes(ksub[0]['last_subscription_date']),
                                                            add_quotes(ksub[0]['last_subscribed_by']))
-                                  + " ; " + " \n")
+                                  + " ; ")
             except Exception as e:
                 errors.write(f"FundId - {fund[0]['id']} , KsubId - {ksub[0]['kristal_subscription_id']} => An "
                              f"unexpected error occurred: {e}" + "\n")
@@ -97,5 +111,23 @@ def process(chunks):
 
 for chunk in pd.read_csv('../files/itd/fund_ksub.csv', chunksize=chunk_size):
     process(chunk)
+
+print("Assumption!!!")
+print("Total kSubs - ", total_ksub_count)
+print("Total fundAssets - ", total_asset_count)
+print("Total rows in ViewQuery  -  ", len(data_frame))
+print("\n")
+
+print("Breakdown!!!")
+print("ViewQuery : rows_where_fund_is_null - ", str(rows_where_fund_is_null))
+print("ViewQuery : rows_where_ksub_is_null - ", str(rows_where_ksub_is_null))
+print("ViewQuery : rows_where_ksub_fund_non_null - ", str(rows_where_ksub_fund_non_null) + "\n")
+
+print("Assertion!!!")
+print("Total kSubs in view - ", rows_where_ksub_fund_non_null + rows_where_fund_is_null)
+print("Total fundAssets in view - ", rows_where_ksub_is_null + rows_where_ksub_fund_non_null)
+print("Total -  ", rows_where_fund_is_null + rows_where_ksub_is_null + rows_where_ksub_fund_non_null)
+
 insert_psql.close()
 errors.close()
+skipped.close()

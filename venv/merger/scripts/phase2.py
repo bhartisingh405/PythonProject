@@ -14,7 +14,7 @@ missing_goals_df = pd.DataFrame(list(missing_goals_set), columns=['goal_id'])
 union_df = pd.concat([combined_df, missing_goals_df], ignore_index=True)
 
 # Save the combined data to a new CSV file
-union_df.to_csv('../files/itd/all_trades.csv', index=False)
+union_df.to_csv('../files/itd/all_trades_and_goals.csv', index=False)
 
-print("The three files have been combined and saved as 'all_txns.csv'.")
+print("The three files have been combined and saved as 'all_trades_and_goals.csv'.")
 
