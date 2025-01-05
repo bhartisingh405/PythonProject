@@ -83,9 +83,7 @@ def process(chunks):
 
         if ksg is not None and txn is not None:
             try:
-                insert_psql.write(insert_query_full.format(None,
-                                                           None,
-                                                           add_quotes(txn[0]['user_id'] or ksg[0]['user_id']),
+                insert_psql.write(insert_query_full.format(add_quotes(txn[0]['user_id'] or ksg[0]['user_id']),
                                                            add_quotes(txn[0]['user_account_id']
                                                                       or ksg[0]['kristal_execution_account']),
                                                            add_quotes(txn[0]['quantity'] or ksg[0]['approved_units']),

@@ -38,7 +38,7 @@ rows_where_ksub_fund_non_null = len(data_frame.loc[(data_frame['skey'].notnull()
 
 
 def process(chunks):
-    global fund, ksub
+    global fund, ksub, ka
     for row in chunks.itertuples(index=False):
 
         if row is None:
@@ -74,6 +74,14 @@ def process(chunks):
             ksub = postgresql_to_record(connection, f"select * from funds_kristals.kristal_subscription where "
                                                     "kristal_subscription_id={}".format(row.kristal_subscription_id))
 
+        if fund[0]['asset_id'] is None and ksub[0]['kristal_id'] is not None:
+            ka = postgresql_to_record(connection, f"select * from kristaldata_kristals.kristal_properties where "
+                                                  "kristal_id={}".format(ksub[0]['kristal_id']))
+
+        elif ksub[0]['kristal_id'] is None and fund[0]['asset_id'] is not None:
+            ka = postgresql_to_record(connection, f"select * from kristaldata_kristals.kristal_properties where "
+                                                  "lone_asset_id={}".format(fund[0]['asset_id']))
+
         if ksub is not None and fund is not None:
             try:
                 insert_psql.write(insert_query_full.format(add_quotes(fund[0]['user_account_id']
@@ -91,13 +99,13 @@ def process(chunks):
                                                            'now()',
                                                            'now()',
                                                            add_quotes(fund[0]['user_id'] or ksub[0]['user_id']),
-                                                           add_quotes(fund[0]['asset_id']),
+                                                           add_quotes(fund[0]['asset_id'] or ka[0]['lone_asset_id']),
                                                            add_quotes(fund[0]['custom_asset_id']),
                                                            add_quotes(fund[0]['return_percentage']),
                                                            add_quotes(fund[0]['fx_to_account']),
                                                            add_quotes(fund[0]['ib_leverage_in_account_currency']),
                                                            add_quotes(fund[0]['accrued_interest']),
-                                                           add_quotes(ksub[0]['kristal_id']),
+                                                           add_quotes(ksub[0]['kristal_id'] or ka[0]['kristal_id']),
                                                            add_quotes(ksub[0]['no_of_subscribed_pending_units']),
                                                            add_quotes(ksub[0]['amount_of_mf_order_pending']),
                                                            add_quotes((ksub[0]['unit_cost_price'] or 0)),
