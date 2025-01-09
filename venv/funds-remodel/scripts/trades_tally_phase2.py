@@ -8,7 +8,7 @@ dfg = pd.read_csv('../files/itd/all_goals.csv')
 print("Started executing trades_tally_phase2.py!!!")
 # Combine the files vertically (append rows)
 combined_df = pd.concat([df1, df2, df3], ignore_index=True)
-missing_goals_set = set(dfg['goal_id']) - set(combined_df['goal_id'])  # Elements in df2['A'] but not in df1['A']
+missing_goals_set = set(dfg['goal_id']) - set(combined_df['goal_id'])
 
 missing_goals_df = pd.DataFrame(list(missing_goals_set), columns=['goal_id'])
 union_df = pd.concat([combined_df, missing_goals_df], ignore_index=True)

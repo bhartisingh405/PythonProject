@@ -25,6 +25,9 @@ connection = psycopg2.connect(host=config['postgresDB']['host'],
 
 errors = open("../files/out/trades_tally_errors.txt", "w", encoding="utf-8")
 print("Started executing trades_tally_final.py!!!")
+kaMap = load_ka_to_map("../files/itd/kristal_to_asset.csv")
+akMap = load_ak_to_map("../files/itd/asset_to_kristal.csv")
+gkMap = load_gk_to_map("../files/itd/all_goals.csv")
 
 
 def process(chunks):
@@ -47,16 +50,21 @@ def process(chunks):
 
         elif row.goal_id is not None and (not math.isnan(row.goal_id)):
             txn_null_inserts += 1
+            kId = gkMap.get(int(row.goal_id))
+            aId = None
+            if kId is not None:
+                aId = kaMap.get(int(kId))
             try:
-                insert_psql.write(insert_query_txn_null.format(int(row.goal_id)) + " ; ")
+                insert_psql.write(insert_query_txn_null.format(add_quotes(aId), int(row.goal_id)) + " ; ")
             except Exception as e:
                 errors.write(f"TransactionId - null , GoalId - {int(row.goal_id)}  An unexpected error "
                              f"occurred: {e}" + "\n")
 
         elif row.transaction_id is not None and (not math.isnan(row.transaction_id)):
             ksg_null_inserts += 1
+            kId = akMap.get(int(row.asset_id))
             try:
-                insert_psql.write(insert_query_ksg_null.format(int(row.transaction_id)) + " ; ")
+                insert_psql.write(insert_query_ksg_null.format(add_quotes(kId), int(row.transaction_id)) + " ; ")
             except Exception as e:
                 errors.write(f"TransactionId - {int(row.transaction_id)} , GoalId - null  An unexpected error "
                              f"occurred: {e}" + "\n")

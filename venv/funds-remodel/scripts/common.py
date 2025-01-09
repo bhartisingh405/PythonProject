@@ -1,3 +1,4 @@
+import csv
 import datetime
 import psycopg2
 import pandas as pd
@@ -128,3 +129,54 @@ def is_json(myjson):
     except (ValueError, Exception) as e:
         return False
     return True
+
+
+def load_ak_to_map(file_path):
+    data_map = {}
+    try:
+        with open(file_path, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row is None or row['asset_id'] is None or row['asset_id'] == '':
+                    continue
+                asset_id = int(row['asset_id'])  # Convert `kristal_id` to integer
+                kristal_id = row['kristal_id']
+                # Assign None if `asset_id` is missing, otherwise convert to integer
+                data_map[asset_id] = int(kristal_id) if kristal_id else None
+    except Exception as e:
+        print(f"Error reading file: {e}")
+    return data_map
+
+
+def load_ka_to_map(file_path):
+    data_map = {}
+    try:
+        with open(file_path, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row is None or row['kristal_id'] is None or row['kristal_id'] == '':
+                    continue
+                kristal_id = int(row['kristal_id'])  # Convert `kristal_id` to integer
+                asset_id = row['asset_id']
+                # Assign None if `asset_id` is missing, otherwise convert to integer
+                data_map[kristal_id] = int(asset_id) if asset_id else None
+    except Exception as e:
+        print(f"Error reading file: {e}")
+    return data_map
+
+
+def load_gk_to_map(file_path):
+    data_map = {}
+    try:
+        with open(file_path, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row is None or row['goal_id'] is None or row['goal_id'] == '':
+                    continue
+                goal_id = int(row['goal_id'])  # Convert `kristal_id` to integer
+                kristal_id = row['kristal_id']
+                # Assign None if `asset_id` is missing, otherwise convert to integer
+                data_map[goal_id] = int(kristal_id) if kristal_id else None
+    except Exception as e:
+        print(f"Error reading file: {e}")
+    return data_map

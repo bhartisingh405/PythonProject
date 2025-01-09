@@ -30,12 +30,15 @@ errors = open("../files/out/fund_tally_errors.txt", "w", encoding="utf-8")
 total_ksub_count = postgresql_to_row_count(connection, sqlCommands[0])
 total_asset_count = postgresql_to_row_count(connection, sqlCommands[1])
 
-columns = ['kristal_subscription_id', 'skey', 'fund_id', 'fkey', 'email', 'compliance_mode',
+columns = ['kristal_subscription_id', 'skey', 'fund_id', 'fkey', 'kristal_id', 'asset_id', 'email', 'compliance_mode',
            'is_model_account', 'account_status']
 data_frame = postgresql_to_dataframe(connection, sqlCommands[2], columns)
 data_frame.to_csv('../files/itd/fund_ksub.csv', encoding='utf-8', index=False, header=True, columns=columns)
 
-print("Started executing fund_tally_generate.py!!!")
+print("Started executing fund_tally_final.py!!!")
+
+kaMap = load_ka_to_map("../files/itd/kristal_to_asset.csv")
+akMap = load_ak_to_map("../files/itd/asset_to_kristal.csv")
 
 print("Total kSubs - ", total_ksub_count)
 print("Total fundAssets - ", total_asset_count)
@@ -61,16 +64,19 @@ def process(chunks):
 
         elif row.kristal_subscription_id is not None and (not math.isnan(row.kristal_subscription_id)):
             fund_null_inserts += 1
+            asset_id = kaMap.get(int(row.kristal_id))
             try:
-                insert_psql.write(insert_query_fund_null.format(int(row.kristal_subscription_id)) + " ; ")
+                insert_psql.write(insert_query_fund_null
+                                  .format(add_quotes(asset_id), int(row.kristal_subscription_id)) + " ; ")
             except Exception as e:
                 errors.write(f"FundId - null , KsubId - {int(row.kristal_subscription_id)}  An unexpected error "
                              f"occurred: {e}" + "\n")
 
         elif row.fund_id is not None and (not math.isnan(row.fund_id)):
             ks_null_inserts += 1
+            kristal_id = akMap.get(int(row.asset_id))
             try:
-                insert_psql.write(insert_query_ks_null.format(int(row.fund_id)) + " ; ")
+                insert_psql.write(insert_query_ks_null.format(add_quotes(kristal_id), int(row.fund_id)) + " ; ")
             except Exception as e:
                 errors.write(f"FundId - {int(row.fund_id)} , GoalId - null  An unexpected error "
                              f"occurred: {e}" + "\n")
@@ -87,4 +93,4 @@ with gzip.open("../files/out/fund_tally_inserts.sql.gz", "wt", encoding="utf-8")
 insert_psql.close()
 errors.close()
 
-print("Finished executing fund_tally_generate.py!!!")
+print("Finished executing fund_tally_final.py!!!")

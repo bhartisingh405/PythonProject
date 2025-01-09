@@ -8,7 +8,8 @@ config = configparser.ConfigParser()
 config.read('../configs/config.ini')
 pd.set_option("mode.chained_assignment", None)
 
-columns = ["goal_id", "transaction_id", "trade_type", "foi_goal_id", "kristal_subscription_goal_id"]
+columns = ["goal_id", "transaction_id", "trade_type", "foi_goal_id", "kristal_subscription_goal_id",
+           "kristal_id", "asset_id"]
 known_duplicated_txnIds = frozenset(
     [712066, 712075, 712072, 712069, 632537, 632567, 460758, 460266, 496504, 496521, 496552,
      496496, 182206, 181416, 668235, 668236, 132824, 132820, 159246, 668212, 668201, 132819,
@@ -33,8 +34,9 @@ try:
     sqlCommands = sqlFile.split(';')
     total_txn_count = postgresql_to_row_count(connection, sqlCommands[0])
 
-    dfg = postgresql_to_dataframe(connection, sqlCommands[1], columns=['goal_id'])
-    dfg.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True, columns=["goal_id"])
+    dfg = postgresql_to_dataframe(connection, sqlCommands[1], columns=["goal_id", "kristal_id"])
+    dfg.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True,
+               columns=["goal_id", "kristal_id"])
     df = postgresql_to_dataframe(connection, sqlCommands[2], columns)
 
     dup_df = df[df.duplicated('transaction_id', keep=False)]
@@ -66,7 +68,7 @@ try:
                           | (itd_df['trade_type'] == 'ASSET_OUT'))].index, inplace=True)
     df_final = itd_df.T.groupby(level=0).first().T
     df_final.to_csv('../files/itd/mapped_txns.csv', encoding='utf-8', index=False, header=True,
-                    columns=["transaction_id", "goal_id"])
+                    columns=["transaction_id", "goal_id", "kristal_id", "asset_id"])
 
     print("\n")
     print("Stats Verification!!")
