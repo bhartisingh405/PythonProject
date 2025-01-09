@@ -5,7 +5,7 @@ df1 = pd.read_csv('../files/itd/mapped_txns.csv')
 df2 = pd.read_csv('../files/static/duplicate_txns_corrected.csv')
 df3 = pd.read_csv('../files/static/unmapped_txns.csv')
 dfg = pd.read_csv('../files/itd/all_goals.csv')
-
+print("Started executing trades_tally_phase2.py!!!")
 # Combine the files vertically (append rows)
 combined_df = pd.concat([df1, df2, df3], ignore_index=True)
 missing_goals_set = set(dfg['goal_id']) - set(combined_df['goal_id'])  # Elements in df2['A'] but not in df1['A']
@@ -26,4 +26,6 @@ print("All Txn and Goals count - " + str(len(union_df)) + " = [" + str(txn_count
 
 # Save the combined data to a new CSV file
 union_df.to_csv('../files/itd/all_trades_and_goals.csv', index=False)
+
+print("Finished executing trades_tally_phase2.py!!!")
 

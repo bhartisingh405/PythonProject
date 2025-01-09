@@ -16,6 +16,9 @@ known_duplicated_txnIds = frozenset(
 known_unmapped_txnIds = frozenset(
     [720479, 721242, 491563, 726386, 687997, 684427, 677923, 684792, 696608, 718735, 677920, 491556,
      726690, 682397, 119042, 685091, 165975, 727342, 384144, 726691])
+
+print("Started executing trades_tally_phase1.py!!!")
+
 try:
     connection = psycopg2.connect(host=config['postgresDB']['host'],
                                   user=config['postgresDB']['user'],
@@ -77,4 +80,4 @@ try:
 finally:
     if connection:
         connection.close()
-        print("PostgreSQL connection is closed")
+        print("Finished executing trades_tally_phase1.py!!!")

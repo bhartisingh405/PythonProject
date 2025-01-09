@@ -1,18 +1,19 @@
+import numpy as np
 import pandas as pd
 import configparser
-from common import *
+from methods import *
 import math
 
 config = configparser.ConfigParser()
-config.read('../configs/config.ini')
-fd = open('../files/in/fund_tally_queries.sql', 'r')
+config.read('../../configs/config.ini')
+fd = open('../../files/in/fund_tally_queries.sql', 'r')
 sqlFile = fd.read()
 fd.close()
 sqlCommands = sqlFile.split(';')
 insert_query_full = sqlCommands[3]
 
 # Process chunks of data to avoid memory overload
-chunk_size = 10000  # Adjust chunk size based on memory
+chunk_size = 100000  # Adjust chunk size based on memory
 
 connection = psycopg2.connect(host=config['postgresDB']['host'],
                               user=config['postgresDB']['user'],
@@ -20,9 +21,9 @@ connection = psycopg2.connect(host=config['postgresDB']['host'],
                               port=config['postgresDB']['port'],
                               database=config['postgresDB']['db'])
 
-insert_psql = open("../files/out/fund_tally_inserts.sql", "w", encoding="utf-8")
-errors = open("../files/out/fund_tally_errors.txt", "w", encoding="utf-8")
-skipped = open("../files/out/fund_tally_skipped.txt", "w", encoding="utf-8")
+insert_psql = open("../../files/out/fund_tally_inserts.sql", "w", encoding="utf-8")
+errors = open("../../files/out/fund_tally_errors.txt", "w", encoding="utf-8")
+skipped = open("../../files/out/fund_tally_skipped.txt", "w", encoding="utf-8")
 
 total_ksub_count = postgresql_to_row_count(connection, sqlCommands[0])
 total_asset_count = postgresql_to_row_count(connection, sqlCommands[1])
@@ -30,11 +31,13 @@ total_asset_count = postgresql_to_row_count(connection, sqlCommands[1])
 columns = ['kristal_subscription_id', 'skey', 'fund_id', 'fkey', 'email', 'compliance_mode',
            'is_model_account', 'account_status']
 data_frame = postgresql_to_dataframe(connection, sqlCommands[2], columns)
-data_frame.to_csv('../files/itd/fund_ksub.csv', encoding='utf-8', index=False, header=True, columns=columns)
+data_frame.to_csv('../../files/itd/fund_ksub.csv', encoding='utf-8', index=False, header=True, columns=columns)
 
 rows_where_fund_is_null = len(data_frame.loc[data_frame['fkey'].isnull()])
 rows_where_ksub_is_null = len(data_frame.loc[data_frame['skey'].isnull()])
 rows_where_ksub_fund_non_null = len(data_frame.loc[(data_frame['skey'].notnull()) & (data_frame['fkey'].notnull())])
+
+print("Started executing fund_tally.py!!!")
 
 
 def process(chunks):
@@ -80,20 +83,22 @@ def process(chunks):
 
         elif ksub[0]['kristal_id'] is None and fund[0]['asset_id'] is not None:
             ka = postgresql_to_record(connection, f"select * from kristaldata_kristals.kristal_properties where "
-                                                  "lone_asset_id={}".format(fund[0]['asset_id']))
+                                                  "kristal_composition::text ilike '%assetId%: {}%'"
+                                      .format(fund[0]['asset_id']))
 
         if ksub is not None and fund is not None:
             try:
-                insert_psql.write(insert_query_full.format(add_quotes(fund[0]['user_account_id']
+                insert_psql.write(insert_query_full.format(add_quotes(ksub[0]['kristal_subscription_id']),
+                                                           add_quotes(fund[0]['user_account_id']
                                                                       or ksub[0]['kristal_execution_account']),
                                                            add_quotes(fund[0]['quantity']
                                                                       or ksub[0]['no_of_subscribed_approved_units']),
-                                                           add_quotes((fund[0]['cost_nav'])),
+                                                           add_quotes(fund[0]['cost_nav']),
                                                            add_quotes(fund[0]['net_asset_value']),
-                                                           add_quotes(fund[0]['dividends']),
-                                                           add_quotes(fund[0]['eq_credit']),
-                                                           add_quotes(fund[0]['eq_debit']),
-                                                           add_quotes(fund[0]['transaction_fees']),
+                                                           add_quotes(fund[0]['dividends'] or 0),
+                                                           add_quotes(fund[0]['eq_credit'] or 0),
+                                                           add_quotes(fund[0]['eq_debit'] or 0),
+                                                           add_quotes(fund[0]['transaction_fees'] or 0),
                                                            add_quotes(fund[0]['gain_or_loss']),
                                                            add_quotes(fund[0]['nav_calculation_time']),
                                                            'now()',
@@ -101,13 +106,13 @@ def process(chunks):
                                                            add_quotes(fund[0]['user_id'] or ksub[0]['user_id']),
                                                            add_quotes(fund[0]['asset_id'] or ka[0]['lone_asset_id']),
                                                            add_quotes(fund[0]['custom_asset_id']),
-                                                           add_quotes(fund[0]['return_percentage']),
+                                                           add_quotes(fund[0]['return_percentage'] or 0),
                                                            add_quotes(fund[0]['fx_to_account']),
-                                                           add_quotes(fund[0]['ib_leverage_in_account_currency']),
-                                                           add_quotes(fund[0]['accrued_interest']),
+                                                           add_quotes(fund[0]['ib_leverage_in_account_currency'] or 0),
+                                                           add_quotes(fund[0]['accrued_interest'] or 0),
                                                            add_quotes(ksub[0]['kristal_id'] or ka[0]['kristal_id']),
-                                                           add_quotes(ksub[0]['no_of_subscribed_pending_units']),
-                                                           add_quotes(ksub[0]['amount_of_mf_order_pending']),
+                                                           add_quotes(ksub[0]['no_of_subscribed_pending_units'] or 0),
+                                                           add_quotes(ksub[0]['amount_of_mf_order_pending'] or 0),
                                                            add_quotes((ksub[0]['unit_cost_price'] or 0)),
                                                            add_quotes(ksub[0]['last_subscription_date']),
                                                            add_quotes(ksub[0]['last_subscribed_by']))
@@ -117,7 +122,7 @@ def process(chunks):
                              f"unexpected error occurred: {e}" + "\n")
 
 
-for chunk in pd.read_csv('../files/itd/fund_ksub.csv', chunksize=chunk_size):
+for chunk in pd.read_csv('../../files/itd/fund_ksub.csv', chunksize=chunk_size):
     process(chunk)
 
 print("Assumption!!!")
@@ -139,3 +144,5 @@ print("Total -  ", rows_where_fund_is_null + rows_where_ksub_is_null + rows_wher
 insert_psql.close()
 errors.close()
 skipped.close()
+
+print("Finished executing fund_tally.py!!!")

@@ -17,6 +17,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/venv/merger/files/itd/all_trades_and_goals.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/merger/files/itd/duplicated_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/venv/merger/files/itd/fund_ksub.csv">
           <value>
             <Attribute>
@@ -25,6 +39,27 @@
           </value>
         </entry>
         <entry key="/venv/merger/files/itd/mapped_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/merger/files/itd/new_duplicated_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/merger/files/itd/new_unmapped_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/merger/files/itd/unmapped_txns.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

@@ -1,18 +1,18 @@
 import pandas as pd
 import configparser
-from common import *
+from methods import *
 import math
 
 config = configparser.ConfigParser()
-config.read('../configs/config.ini')
-fd = open('../files/in/select_txns.sql', 'r')
+config.read('../../configs/config.ini')
+fd = open('../../files/in/trade_tally_queries.sql', 'r')
 sqlFile = fd.read()
 fd.close()
 sqlCommands = sqlFile.split(';')
 insert_query_full = sqlCommands[3]
 
 # Process chunks of data to avoid memory overload
-chunk_size = 10000  # Adjust chunk size based on memory
+chunk_size = 500000  # Adjust chunk size based on memory
 
 connection = psycopg2.connect(host=config['postgresDB']['host'],
                               user=config['postgresDB']['user'],
@@ -20,8 +20,9 @@ connection = psycopg2.connect(host=config['postgresDB']['host'],
                               port=config['postgresDB']['port'],
                               database=config['postgresDB']['db'])
 
-insert_psql = open("../files/out/trades_tally_inserts.sql", "w", encoding="utf-8")
-errors = open("../files/out/trades_tally_errors.txt", "w", encoding="utf-8")
+insert_psql = open("../../files/out/trades_tally_inserts.sql", "w", encoding="utf-8")
+errors = open("../../files/out/trades_tally_errors.txt", "w", encoding="utf-8")
+print("Started executing trades_tally_final.py!!!")
 
 
 def process(chunks):
@@ -50,16 +51,16 @@ def process(chunks):
         if math.isnan(row.goal_id) or row.goal_id is None:
             ksg = [{}]
             ksg[0] = dict(kristal_execution_account=None, user_id=None, kristal_subscription_id=None,
-                          kristal_subscription_goal_id=None, subscription_date=None, approved_units=None,
+                          kristal_subscription_goal_id=None, subscription_date=None, approved_units=0,
                           subscribed_by=None, approved_date=None, approved_by=None, source_type=None,
-                          audit_details=None, unit_price=None, cash_in_kristal_per_unit=None, total_cost=None,
+                          audit_details=None, unit_price=0, cash_in_kristal_per_unit=None, total_cost=None,
                           asset_wise_cost_map=None, subscription_pending_execution_state='NA',
                           lifecycle_state='NA', bookkeeping_state='NA', unique_id=None, requested_units=0,
                           requested_amount=0, original_request=None, bk_state_mover=None, approved_amount=0,
                           fund_remarks=None, user_report_id=None, fund_bookkeeping=None, kristal_id=None,
                           investment_rationale=None, temp_unit_price=None, temp_total_cost=None,
                           approval_audit=None, platform='NA', mechanism='NA', activity_uuid=None, is_transfer=None,
-                          transaction_fees=None, original_subscription_date=None, original_unit_nav=None,
+                          transaction_fees=0, original_subscription_date=None, original_unit_nav=None,
                           original_investment_amount=None, expert_opinion_id=None, broker_price=None, client_price=None,
                           execution_date=None, settlement_date=None, sn_note_size=None, spread=None, spread_amount=None,
                           broker_settlement_amount=None, sn_net_subscription_amount=None, cost_with_fees=None,
@@ -79,15 +80,18 @@ def process(chunks):
 
         elif ksg[0]['kristal_id'] is None and txn[0]['asset_id'] is not None:
             ka = postgresql_to_record(connection, f"select * from kristaldata_kristals.kristal_properties where "
-                                                  "lone_asset_id={}".format(txn[0]['asset_id']))
+                                                  "kristal_composition::text ilike '%assetId%: {}%'"
+                                      .format(txn[0]['asset_id']))
 
         if ksg is not None and txn is not None:
             try:
-                insert_psql.write(insert_query_full.format(add_quotes(txn[0]['user_id'] or ksg[0]['user_id']),
+                insert_psql.write(insert_query_full.format(add_quotes(ksg[0]['kristal_subscription_goal_id']),
+                                                           add_quotes(txn[0]['user_id'] or ksg[0]['user_id']),
                                                            add_quotes(txn[0]['user_account_id']
                                                                       or ksg[0]['kristal_execution_account']),
-                                                           add_quotes(txn[0]['quantity'] or ksg[0]['approved_units']),
-                                                           add_quotes((ksg[0]['approved_amount'])),
+                                                           add_quotes(0 or txn[0]['quantity']
+                                                                      or ksg[0]['approved_units']),
+                                                           add_quotes((ksg[0]['approved_amount'] or 0)),
                                                            add_quotes((txn[0]['asset_id'] or ka[0]['lone_asset_id'])),
                                                            add_quotes(txn[0]['custom_asset_id']),
                                                            add_quotes(txn[0]['asset_type']),
@@ -95,8 +99,8 @@ def process(chunks):
                                                            add_quotes(txn[0]['trade_type']),
                                                            add_quotes(txn[0]['trade_price']),
                                                            add_quotes(txn[0]['trade_nav']),
-                                                           add_quotes(txn[0]['fees']),
-                                                           add_quotes(txn[0]['taxes']),
+                                                           add_quotes(0 or txn[0]['fees'] or ksg[0]['fee']),
+                                                           add_quotes(0 or txn[0]['taxes'] or ksg[0]['tax']),
                                                            'now()',
                                                            'now()',
                                                            add_quotes(txn[0]['external_transaction_id']),
@@ -105,7 +109,7 @@ def process(chunks):
                                                            add_quotes(txn[0]['proposed_price']),
                                                            add_quotes(txn[0]['wm_fx_rate_to_base']),
                                                            add_quotes(txn[0]['base_currency']),
-                                                           add_quotes(txn[0]['trade_purpose']),
+                                                           add_quotes(txn[0]['trade_purpose'] or 'DEFAULT'),
                                                            add_quotes(txn[0]['original_trade_time']),
                                                            add_quotes(txn[0]['original_trade_price']),
                                                            add_quotes(txn[0]['original_trade_nav']),
@@ -127,8 +131,8 @@ def process(chunks):
                                                            add_quotes((ksg[0]['lifecycle_state'])),
                                                            add_quotes((ksg[0]['bookkeeping_state'])),
                                                            add_quotes(ksg[0]['unique_id']),
-                                                           add_quotes((ksg[0]['requested_units'])),
-                                                           add_quotes((ksg[0]['requested_amount'])),
+                                                           add_quotes((ksg[0]['requested_units'] or 0)),
+                                                           add_quotes((ksg[0]['requested_amount'] or 0)),
                                                            add_quotes(ksg[0]['original_request']),
                                                            add_quotes(ksg[0]['bk_state_mover']),
                                                            add_quotes(ksg[0]['fund_remarks']),
@@ -174,12 +178,14 @@ def process(chunks):
                                                            add_quotes(ksg[0]['estimated_dates_audit']),
                                                            add_quotes(ksg[0]['estimated_subscription_dates_id']),
                                                            add_quotes(ksg[0]['estimated_redemption_dates_id']))
-                                  + " ; " + " \n")
+                                  + " ; ")
             except Exception as e:
                 errors.write(f"TransactionId - {txn[0]['transaction_id']} An unexpected error occurred: {e}" + "\n")
 
 
-for chunk in pd.read_csv('../files/itd/all_trades.csv', chunksize=chunk_size):
+for chunk in pd.read_csv('../../files/itd/all_trades_and_goals.csv', chunksize=chunk_size):
     process(chunk)
 insert_psql.close()
 errors.close()
+print("Finished executing trades_tally_final.py!!!")
+
