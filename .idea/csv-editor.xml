@@ -3,77 +3,21 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="/venv/merger/files/itd/all_goals.csv">
+        <entry key="/venv/funds-remodel/files/itd/asset_to_kristal.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/merger/files/itd/all_trades.csv">
+        <entry key="/venv/funds-remodel/files/static/duplicate_txns_corrected.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/merger/files/itd/all_trades_and_goals.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/itd/duplicated_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/itd/fund_ksub.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/itd/mapped_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/itd/new_duplicated_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/itd/new_unmapped_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/itd/unmapped_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/static/duplicate_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/merger/files/static/unmapped_txns.csv">
+        <entry key="/venv/funds-remodel/files/static/unmapped_txns.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
