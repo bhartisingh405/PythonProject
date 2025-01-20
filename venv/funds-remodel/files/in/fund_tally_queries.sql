@@ -43,7 +43,7 @@ WITH
 	LEFT JOIN vpn2_investo2o.users as u ON u.user_id = fund.user_id
 	LEFT JOIN vpn2_investo2o.user_accounts as ua ON ua.user_account_id = fund.user_account_id
 	where quantity > 0.0
-  ) SELECT ksub.kristal_subscription_id as kristal_subscription_id ,
+  ) SELECT ksub.kristal_subscription_id::bigint as kristal_subscription_id ,
     ksub.skey as skey ,
     fd.fund_id as fund_id ,
     fd.fkey as fkey,
