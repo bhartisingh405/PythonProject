@@ -3,6 +3,13 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="/venv/funds-remodel/files/itd/all_goals.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/venv/funds-remodel/files/itd/asset_to_kristal.csv">
           <value>
             <Attribute>
@@ -10,7 +17,56 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/venv/funds-remodel/files/itd/fund_ksub.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/itd/kristal_to_asset.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/itd/mapped_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/itd/new_duplicate_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/itd/new_unmapped_txns.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/itd/unapproved_goals.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/venv/funds-remodel/files/static/duplicate_txns_corrected.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/static/unmapped.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

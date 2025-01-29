@@ -3,7 +3,7 @@ import gzip
 import numpy as np
 import pandas as pd
 import configparser
-from common import *
+from methods import *
 import math
 
 config = configparser.ConfigParser()

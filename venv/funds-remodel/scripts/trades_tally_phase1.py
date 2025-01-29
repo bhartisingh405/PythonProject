@@ -27,9 +27,14 @@ try:
     sqlCommands = sqlFile.split(';')
     total_txn_count = postgresql_to_row_count(connection, sqlCommands[0])
 
-    dfg = postgresql_to_dataframe(connection, sqlCommands[1], columns=["goal_id", "kristal_id"])
-    dfg.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True,
-               columns=["goal_id", "kristal_id"])
+    dfg_all = postgresql_to_dataframe(connection, sqlCommands[1], columns=["goal_id", "kristal_id"])
+    dfg_all.to_csv('../files/itd/all_goals.csv', encoding='utf-8', index=False, header=True,
+                   columns=["goal_id", "kristal_id"])
+
+    dfg_unapproved = postgresql_to_dataframe(connection, sqlCommands[7], columns=["goal_id", "kristal_id"])
+    dfg_unapproved.to_csv('../files/itd/unapproved_goals.csv', encoding='utf-8', index=False, header=True,
+                          columns=["goal_id", "kristal_id"])
+
     df = postgresql_to_dataframe(connection, sqlCommands[2], columns)
 
     dup_df = df[df.duplicated('transaction_id', keep=False)]
