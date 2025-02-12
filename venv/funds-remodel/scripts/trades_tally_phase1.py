@@ -38,14 +38,14 @@ try:
     df = postgresql_to_dataframe(connection, sqlCommands[2], columns)
 
     dup_df = df[df.duplicated('transaction_id', keep=False)]
-    dup_df.to_csv('../files/itd/new_duplicate_txns.csv', encoding='utf-8', index=False, header=True,
+    dup_df.to_csv('../files/itd/duplicate_txns.csv', encoding='utf-8', index=False, header=True,
                   columns=["transaction_id", "goal_id", "kristal_id", "asset_id"])
 
     unmapped_df = df.loc[(df['foi_goal_id'].isnull()) & (df['kristal_subscription_goal_id'].isnull())
                          & ((df['trade_type'] == 'BUY') | (df['trade_type'] == 'SELL')
                             | (df['trade_type'] == 'ASSET_IN')
                             | (df['trade_type'] == 'ASSET_OUT'))]
-    unmapped_df.to_csv('../files/itd/new_unmapped_txns.csv', encoding='utf-8', index=False, header=True,
+    unmapped_df.to_csv('../files/itd/unmapped_txns.csv', encoding='utf-8', index=False, header=True,
                        columns=["transaction_id", "goal_id", "kristal_id", "asset_id"])
 
     print("Transactions Count : ", total_txn_count)
@@ -59,12 +59,25 @@ try:
                           | (itd_df['trade_type'] == 'ASSET_IN')
                           | (itd_df['trade_type'] == 'ASSET_OUT'))].index, inplace=True)
     df_final = itd_df.T.groupby(level=0).first().T
+
+    # Count occurrences of each goal_id
+    goal_counts = df_final['goal_id'].value_counts()
+    duplicate_goal_ids = goal_counts[goal_counts > 1].index
+
+    # Create DataFrame with duplicate goal_id rows
+    df_duplicate_goal_ids = df_final[df_final['goal_id'].isin(duplicate_goal_ids)]
+    df_duplicate_goal_ids.to_csv('../files/itd/duplicate_goal_ids.csv', encoding='utf-8', index=False, header=True,
+                                 columns=["transaction_id", "goal_id", "kristal_id", "asset_id"])
+
+    print("Duplicate GoalIds mapped to Different Transactions in ViewCount : ", len(df_duplicate_goal_ids))
+    df_final = df_final[~df_final['goal_id'].isin(duplicate_goal_ids)]
     df_final.to_csv('../files/itd/mapped_txns.csv', encoding='utf-8', index=False, header=True,
                     columns=["transaction_id", "goal_id", "kristal_id", "asset_id"])
 
     print("\n")
     print("Stats Verification!!")
-    print("Net ViewCount: ", len(df), "-", (str('(') + str(len(dup_df)) + str('+') + str(len(unmapped_df)) + str(')')
+    print("Net ViewCount: ", len(df), "-", (str('(') + str(len(dup_df)) + str('+') + str(len(unmapped_df)) + str('+')
+                                            + str(len(df_duplicate_goal_ids)) + str(')')
                                             + str(' = ') + str(len(df_final))))
 
 

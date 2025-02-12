@@ -11,6 +11,7 @@ and ksg.kristal_subscription_goal_id is not null
 order by t.transaction_id 	;
 
 ----------------------------------------------------------------------------------------------------------------------
+
 Missing three in fund_tally
 ,,186334.0,45.0549|58602|1297648,,1297648.0,43557@inveeeeesto2o.com,,,
 2081519.0,45.054|58602|1297648,,,22193.0,,43557@inveeeeesto2o.com,,,
@@ -27,3 +28,7 @@ INSERT INTO orders.fund_tally ( id, user_account_id, quantity, cost_nav, net_ass
 INSERT INTO orders.fund_tally ( id, user_account_id, quantity, cost_nav, net_asset_value, dividends, eq_credit, eq_debit, transaction_fees, gain_or_loss, nav_calculation_time, created_time, updated_time, user_id, asset_id, custom_asset_id, return_percentage, fx_to_account, ib_leverage_in_account_currency, accrued_interest, kristal_id, no_of_subscribed_pending_units, amount_of_mf_order_pending, unit_cost_price, last_subscription_date, last_subscribed_by ) SELECT CASE WHEN s.kristal_subscription_id is not null THEN s.kristal_subscription_id ELSE nextval('orders.fund_tally_pkey_seq') END, s.kristal_execution_account, s.no_of_subscribed_approved_units, (coalesce(s.unit_cost_price,0) * s.no_of_subscribed_approved_units), (coalesce(s.unit_cost_price,0) * s.no_of_subscribed_approved_units), 0, 0, 0, 0, 0, null, Now(), Now(), s.user_id, 1277694 , null, 0, null, 0, 0, s.kristal_id, s.no_of_subscribed_pending_units, s.amount_of_mf_order_pending, s.unit_cost_price, s.last_subscription_date, s.last_subscribed_by FROM funds_kristals.kristal_subscription s where s.kristal_subscription_id = 2072221    ;
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+Erred out in trades_tally because asset_id is null
+select lifecycle_state from funds_kristals.kristal_subscription_goal where kristal_subscription_goal_id in (2285176 , 2285175, 191298, 191297) ;
+select lone_asset_id , kristal_composition from kristaldata_kristals.kristal_properties where kristal_id in (6508,13278) ;
+select * from funds_kristals.kristal_subscription where kristal_subscription_id in (2068230,2068229,49982) ;

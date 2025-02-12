@@ -10,7 +10,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/itd/asset_to_kristal.csv">
+        <entry key="/venv/funds-remodel/files/itd/all_trades_and_goals.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/venv/funds-remodel/files/itd/duplicate_goal_ids.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -24,14 +31,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/itd/kristal_to_asset.csv">
+        <entry key="/venv/funds-remodel/files/itd/mapped_txns.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/itd/mapped_txns.csv">
+        <entry key="/venv/funds-remodel/files/itd/new_duplicate_goal_ids.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -52,28 +59,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/itd/unapproved_goals.csv">
+        <entry key="/venv/funds-remodel/files/static/1duplicate_txns_corrected.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/static/duplicate_txns_corrected.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/funds-remodel/files/static/unmapped.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/funds-remodel/files/static/unmapped_txns.csv">
+        <entry key="/venv/funds-remodel/files/static/1unmapped_txns.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
