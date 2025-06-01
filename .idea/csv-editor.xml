@@ -24,7 +24,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/itd/fund_ksub.csv">
+        <entry key="/venv/funds-remodel/files/itd/duplicate_txns.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -38,21 +38,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/venv/funds-remodel/files/itd/new_duplicate_goal_ids.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/funds-remodel/files/itd/new_duplicate_txns.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="/venv/funds-remodel/files/itd/new_unmapped_txns.csv">
+        <entry key="/venv/funds-remodel/files/itd/unmapped_txns.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

@@ -3,7 +3,7 @@ SELECT
 FROM
     funds_kristals.kristal_subscription AS ks
 WHERE
-    ( ks.no_of_subscribed_approved_units > 0.0 or ks.no_of_subscribed_pending_units != 0.0 )
+    ( ks.no_of_subscribed_approved_units > 0.0 or ks.no_of_subscribed_pending_units != 0.0 or ks.amount_of_mf_order_pending != 0.0)
     AND (
         EXISTS (
             SELECT 1
@@ -43,7 +43,7 @@ WITH
 		    or exists (select 1 from funds_kristals.kristal_subscription_goal_temp as kst
 		               where kst.kristal_subscription_id = ks.kristal_subscription_id )
 		  )
-		and (ks.no_of_subscribed_approved_units > 0.0 or ks.no_of_subscribed_pending_units != 0.0 )
+		and (ks.no_of_subscribed_approved_units > 0.0 or ks.no_of_subscribed_pending_units != 0.0 or ks.amount_of_mf_order_pending != 0.0 )
   ),
   cte1 AS (
     SELECT
